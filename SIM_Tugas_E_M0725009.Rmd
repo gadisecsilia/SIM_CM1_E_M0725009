@@ -1,0 +1,116 @@
+---
+title: "Laporan Analisis Performa Bisnis Coffee Chain"
+author: "Gadis Ecsilia (M0725009)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+# DESKRIPSI INSIGHT
+## Insight : "Evaluasi Profitabilitas: Analisis Komparatif Skala Market dan Efektivitas Alokasi Biaya Marketing"
+## Deskripsi :
+Analisis ini bertujuan untuk membedah data dari sisi keuangan dan strategi pasar, dengan tidak mengambil semua data, melainkan fokus pada variabel Profit, Marketing, dan Market Size.
+
+Pertama, untuk membuktikan apakah terdapat perbedaan keuntungan yang signifikan antara pasar besar (Major Market) dan pasar kecil (Small Market). Pengetahuan ini krusial untuk menentukan prioritas ekspansi cabang.
+
+Kedua, untuk menginvestigasi hubungan antara biaya pemasaran (Marketing) dengan laba bersih (Profit). Insight ini akan menjawab apakah strategi marketing untuk iklan saat ini benar-benar meningkatkan profitabilitas atau justru menjadi beban operasional di wilayah tertentu.
+
+```{r}
+#import data coffee chain 
+library(readxl)
+data <- read_excel("1. Tugas SIM 2025B - Coffee Chain Datasets.xlsx")
+```
+# VISUALISASI DATA
+## 1.Histogram Distribusi Profit
+Visualisasi ini digunakan untuk memahami pola penyebaran keuntungan.
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Profit)) +
+  geom_histogram(bins = 40, fill = "steelblue", color = "white") +
+  labs(title = "Histogram Distribusi Profit",
+       x = "Nilai Profit", y = "Frekuensi") +
+  theme_minimal()
+```
+
+## 2.Boxplot Profit vs Market Size
+Visualisasi ini untuk membandingkan performa antar kelompok pasar
+```{r}
+ggplot(data, aes(x = `Market Size`, y = Profit, fill = `Market Size`)) +
+  geom_boxplot(alpha = 0.8) +
+  theme_light() +
+  labs(title = "Sebaran Keuntungan berdasarkan Skala Pasar", x = "Market Size", y = "Profit")
+```
+
+## 3.Scatter Plot (Marketing vs Profit)
+Visualisasi ini digunakan untuk melihat hubungan sebab-akibat antara biaya marketing dan keuntungan.
+```{r}
+ggplot(data, aes(x = Marketing, y = Profit, color = `Market Size`)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "black") + # Menambahkan garis tren (regresi)
+  theme_light() +
+  labs(title = "Hubungan Biaya Marketing terhadap Profit", x = "Biaya Marketing", y = "Profit")
+```
+
+# ANALISIS DATA
+## 1. Analisis Deskriptif
+Melalui fungsi summary() untuk mendapatkan nilai Minimum, Median, Mean (Rata-rata), dan Maksimum dan sd() untuk melihat standar deviasi
+```{r}
+#ringkasan deskriptif
+summary(data$Profit)
+#Melihat standar deviasi profit untuk melihat risiko/variansi
+sd_profit <- sd(data$Profit, na.rm = TRUE)
+cat("Standar Deviasi Profit:", sd_profit)
+```
+
+## 2. Uji-t Independen (Independent Samples T-Test)
+Uji ini dilakukan untuk membandingkan rata-rata Profit pada dua kelompok Market Size.
+
+H0: Tidak ada perbedaan rata-rata keuntungan yang signifikan antara Major Market dan Small Market
+
+H1: Terdapat perbedaan rata-rata keuntungan yang signifikan antara Major Market dan Small Market
+```{r}
+uji_t <- t.test(Profit ~ `Market Size`, data = data)
+print(uji_t)
+```
+
+## 3.Analisis Korelasi Pearson
+Digunakan untuk mengukur seberapa kuat hubungan antara variabel Marketing dengan Profit.
+
+H0: Tidak ada hubungan (korelasi) yang signifikan antara biaya pemasaran dan keuntungan.
+
+H1: Ada hubungan (korelasi) yang signifikan antara biaya pemasaran dan keuntungan.
+```{r}
+korelasi_hasil <- cor.test(data$Marketing, data$Profit)
+print(korelasi_hasil)
+```
+
+# INTERPRETASI HASIL
+## Interpretasi Visualisasi
+### 1.Histogram Distribusi Profit
+Berdasarkan visualisasi histogram, variabel Profit menunjukkan distribusi yang menceng ke kanan (Right-Skewed Distribution). Mayoritas transaksi terkonsentrasi pada rentang profit rendah hingga menengah (0-100), namun terdapat ekor distribusi yang panjang hingga mencapai nilai profit di atas 600.
+
+Hal ini mengindikasikan bahwa profitabilitas perusahaan sangat bervariasi. Adanya nilai-nilai ekstrem di sisi kanan menunjukkan bahwa perusahaan memiliki beberapa segmen pasar atau produk unggulan yang memberikan keuntungan jauh di atas rata-rata operasional pada umumnya.
+
+### 2.Boxplot Profit vs Market Size
+Garis Tengah (Median): garis di dalam kotak Major Market lebih tinggi, berarti secara umum standar keuntungan di Major Market memang lebih tinggi dibandingkan Small Market.
+
+Rentang Kotak (Interquartile Range): Semakin panjang kotaknya, semakin tidak stabil keuntungan di Market tersebut. Kotak Major Market lebih panjang daripada Small Market, berarti Small market keuntungannya lebih stabil.
+
+Titik-titik (Outliers): Munculnya banyak titik di atas kotak Major Market menunjukkan bahwa Major Market memiliki keuntungan yang jauh lebih tinggi dibandingkan Small Market.
+
+### 3.Scatter Plot (Marketing vs Profit)
+Setiap titik adalah bukti nyata di lapangan. Jika titik-titik tersebut menyebar luas (tidak menempel ketat pada garis hitam), artinya banyak faktor lain selain iklan (seperti pelayanan atau rasa produk) yang mempengaruhi keuntungan. Namun, arah garis hitam yang menanjak memberikan sinyal positif yaitu secara agregat, biaya marketing tidak sia-sia karena berbanding lurus dengan profit.
+
+## Interpretasi Analisis Data
+### 1.Analisis Deskriptif
+Berdasarkan hasil analisis deskriptif, variabel Profit memiliki nilai rata-rata sebesar 61.1, namun nilai tengahnya (Median) hanya sebesar 40.0. Perbedaan yang signifikan ini menunjukkan bahwa distribusi data keuntungan tidak merata dan condong ke arah positif (Right-Skewed), di mana profit rata-rata dipengaruhi secara dominan oleh beberapa transaksi bernilai tinggi.
+
+Selain itu, nilai Standar Deviasi sebesar 101.7085 yang lebih besar dari nilai rata-ratanya mengindikasikan adanya variansi atau kesenjangan performa yang sangat lebar antar observasi. Hal ini dipertegas dengan rentang data yang ekstrem, mulai dari kerugian terdalam sebesar -638.0 hingga keuntungan tertinggi mencapai 778.0. 
+
+### 2.Uji-t Independen (Independent Samples T-Test)
+Karena p-value < dari 0.05, maka terdapat bukti statistik yang sangat kuat untuk menolak H0. Hal ini secara mutlak membuktikan bahwa adanya perbedaan keuntungan antara Major Market dan Small Market bukan karena faktor keberuntungan, melainkan karena adanya keunggulan fundamental di Major Market.
+
+### 3.Analisis Korelasi Pearson
+Berdasarkan hasil uji korelasi Pearson, didapatkan nilai koefisien korelasi sebesar 0.225465. Hal ini menunjukkan adanya hubungan positif yang lemah namun sangat signifikan (p-value < 0.05) antara biaya pemasaran dan keuntungan. Secara bisnis, hal ini mengindikasikan bahwa setiap penambahan biaya pemasaran berkontribusi pada kenaikan keuntungan, tetapi kontribusinya tidak dominan. Manajemen perlu menyadari bahwa terdapat variabel lain yang mungkin lebih berpengaruh kuat terhadap profit dibandingkan sekadar meningkatkan anggaran iklan. Strategi pemasaran sudah berada di jalur yang tepat (karena arahnya positif), namun efisiensinya perlu ditingkatkan agar setiap rupiah iklan bisa memberikan dampak korelasi yang lebih kuat terhadap laba bersih.
+
+# KESIMPULAN
+Berdasarkan kombinasi 3 visualisasi dan 3 Analisis data di atas, dapat disimpulkan bahwa Coffee Chain ini memiliki performa paling optimal di Major Market. Meskipun biaya pemasaran berkorelasi positif dengan profit, manajemen perlu memperhatikan variansi data yang tinggi (terlihat dari boxplot), yang menandakan bahwa selain pemasaran, ada faktor lokal lain (seperti lokasi spesifik atau manajemen toko) yang juga sangat menentukan keberhasilan bisnis.
